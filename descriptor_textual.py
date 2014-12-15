@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 
+import sys
 import csv
+
+# This lines increases the csv's line max size
+csv.field_size_limit(sys.maxsize)
 
 
 class imageTags(object):
@@ -62,8 +66,8 @@ def writeTags(_fName, _data):
     for item in _data:
         tags = ""
         for tag in item.tags_list:
-            tags += " " + tag
-        wr.writerow([item.document_id+' '+tags])
+            tags += tag + "," 
+        wr.writerow([item.document_id + '***' + tags])
 
 
 ### FROM AVALUADOR ###
@@ -98,17 +102,17 @@ def createTF_IDF(_imageTagsList, _referenceList):
                         for tag in imageTags.tags_list:
                             tags.append(tag)
                         break
-        event.tags_list = tags
+        event.tags_list = set(tags)  #set(tags) -> Set elimina els duplicats en una llista
 
 
 def writeTF_IDF():
-    oFile = open("TF_IDF.CSV", 'wb')
+    oFile = open("TF_IDF.csv", 'wb')
     wr = csv.writer(oFile)
     for event in eventsList:
         tags = ""
         for tag in event.tags_list:
-            tags += tag + ", "
-        wr.writerow(["***" + event.name+"\n"+tags+"\n\n"])
+            tags += tag + ","
+        wr.writerow([event.name + "***" + tags])
 
 
 ######################
