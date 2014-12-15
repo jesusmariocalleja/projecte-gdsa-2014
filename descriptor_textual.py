@@ -143,7 +143,7 @@ eventsList = initEvents(eventsNames)
 #Carrega la llista de referencia
 referenceImageTagsList = getTags("document_id_tag_1.csv")
 referenceImageEventList = getData("train_1.csv")
-##########
+###########
 
 
 createTF_IDF(referenceImageTagsList, referenceImageEventList)
