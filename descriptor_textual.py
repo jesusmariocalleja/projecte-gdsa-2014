@@ -3,7 +3,7 @@
 import sys
 import csv
 
-# Aquesta linea incrementa el tamany maxim de linea de csv
+# Aquesta linea incrementa el tamany de linea de csv
 csv.field_size_limit(sys.maxsize)
 
 
@@ -55,6 +55,7 @@ def getTags(_fileName):
             else:
                 itemList.append(imageTags(splitted[0], [splitted[1]]))
                 i += 1
+                #print("Reading tags from the image '" + splitted[0] + "'")
 
     del itemList[0]  # esborrem la primera fila on trobem els títols
     return itemList
@@ -119,11 +120,19 @@ def writeTF_IDF():
 #### MAIN PROGRAM ####
 ######################
 
-imageTagsList = getTags("document_id_tag_2.csv")
 
-writeTags("id_tags.csv", imageTagsList)
+evaluableImageTagsFileName = "document_id_tag_2.csv"
+referenceImageTagsFileName = "document_id_tag_1.csv"
+referenceImageEventFileName = "train_1.csv"
 
-### tipus d'events ###
+
+print("Reading tags from the file '" + evaluableImageTagsFileName + "'")
+evaluableImageTagsList = getTags(evaluableImageTagsFileName)
+
+print("Writing 'image - tagslist' table in the file '" + evaluableImageTagsFileName + "'")
+writeTags("id_tags.csv", evaluableImageTagsList)
+
+### FROM AVALUADOR ###
 eventsNames = [
     "concert",
     "conference",
@@ -140,10 +149,13 @@ eventsNames = [
 eventsList = initEvents(eventsNames)
 
 
-#Carrega la llista de referencia
-referenceImageTagsList = getTags("document_id_tag_1.csv")
-referenceImageEventList = getData("train_1.csv")
-###########
+#Load the references lists
+print("Reading tags from the file '" + referenceImageTagsFileName + "'")
+referenceImageTagsList = getTags(referenceImageTagsFileName)
+
+print("Reading the reference 'image - event' table from the file '" + referenceImageEventFileName + "'")
+referenceImageEventList = getData(referenceImageEventFileName)
+##########
 
 
 createTF_IDF(referenceImageTagsList, referenceImageEventList)
