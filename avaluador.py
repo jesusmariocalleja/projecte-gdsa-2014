@@ -39,7 +39,7 @@ def getData(_fileName):
         itemList = []
         reader = csv.reader(f)
         for row in reader:
-            splitted = str(row).strip('[ \' ]').split(r'\t')
+            splitted = str(row).strip('[ \' ]').split(r' ')  # \t for tabs
             itemList.append(image(splitted[0], splitted[1]))
     del itemList[0]
     return itemList
@@ -53,22 +53,7 @@ def countImages(_imgList, _event):
     return cont
 
 
-def writeData(_fileName, _data):
-    oFile = open(_fileName, 'wb')
-    wr = csv.writer(oFile)
-    for item in _data:
-        # Here we write what we want
-        eventName = item.event_type
-        cont = 0
-        #'''
-        for event in eventsList:
-            if event.name == eventName:
-                cont = countImages(_data, eventName)
-        #'''
-        wr.writerow([item.document_id+' '+item.event_type+' '+str(cont)])
-
-
-def calcPrecisionRecallF1Score(_rList, _vList, _k):
+def evaluate(_rList, _vList, _k):
     if _k == "all":
         _k = len(_vList)
     for event in eventsList:
@@ -94,22 +79,32 @@ def calcPrecisionRecallF1Score(_rList, _vList, _k):
             event.f1Score = ((2.0 * ((event.precision * event.recall) / (event.precision + event.recall))))
 
 
-'''
-def calcRecall(_rList, _vList, _k):
+def writeResults(_fileName, _eventList):
+    oFile = open(_fileName, 'wb')
+    wr = csv.writer(oFile)
     for event in eventsList:
-        M = countImages(_rList, event.name)
-        cont = 0
-        matched = 0.0
-        for vImage in _vList:
-            if vImage.event_type == event.name:
-                for rImage in _rList:
-                    if rImage.document_id == vImage.document_id:
-                        if rImage.event_type == vImage.event_type:
-                            matched += 1
-                        break
-        event.recall = ("%.2f" % (matched / M))
-'''
+        wr.writerow([
+            str(event.id)
+            + "  " + event.name
+            + "  " + ("%.4f" % event.precision)
+            + "  " + ("%.4f" % event.recall)
+            + "  " + ("%.4f" % event.f1Score)
+        ])
 
+
+def printResults():
+    print("EVENT ID     EVENT NAME        PRECISSION        RECALL            F1 SCORE")
+    for event in eventsList:
+        nameRestChars = 18 - len(event.name)
+        space = ""
+        for i in range(0, nameRestChars):
+            space += " "
+        print(str(event.id)
+            + "            " + event.name
+            + space + ("%.4f" % event.precision)
+            + "            " + ("%.4f" % event.recall)
+            + "            " + ("%.4f" % event.f1Score)
+        )
 
 
 ##########
@@ -121,11 +116,14 @@ def checkIfIsWellClassified(_rList, _vList, _k):
     oFile = open("same_result.txt", 'wb')
     wr = csv.writer(oFile)
     cont = 0
+
+    if _k == "all":
+        _k = len(_vList)
+
     for vImage in _vList:
-        if _k != "all":
-            if cont >= _k:
-                break
-            cont += 1
+        if cont >= _k:
+            break
+        cont += 1
         for rImage in _rList:
             if rImage.document_id == vImage.document_id:
                 if rImage.event_type == vImage.event_type:
@@ -140,32 +138,22 @@ def checkIfIsWellClassified(_rList, _vList, _k):
 
 
 ##########
-## For Testing, this function writes the precision, call and f1score for each event.
+## For Testing, this just writes the data we want to.
 ##########
-def writeResults(_fileName, _eventList):
+def writeData(_fileName, _data):
     oFile = open(_fileName, 'wb')
     wr = csv.writer(oFile)
-    for event in eventsList:
-        wr.writerow([
-            str(event.id)
-            + "  " + event.name
-            + "  " + ("%.4f" % event.precision)
-            + "  " + ("%.4f" % event.recall)
-            + "  " + ("%.4f" % event.f1Score)
-        ])
-##########
+    for item in _data:
+        # Here we write what we want
+        eventName = item.event_type
+        cont = 0
+        #'''
+        for event in eventsList:
+            if event.name == eventName:
+                cont = countImages(_data, eventName)
+        #'''
+        wr.writerow([item.document_id+' '+item.event_type+' '+str(cont)])
 
-
-def printResults():
-    colLength = 18
-    print("EVENT ID     EVENT NAME        PRECISSION        RECALL            F1 SCORE")
-    for event in eventsList:
-        nameRestChars = colLength - len(event.name)
-        space = ""
-        for i in range(0, nameRestChars):
-            space += " "
-        print(str(event.id) + "            " + event.name + space + ("%.4f" % event.precision) + "            " + ("%.4f" % event.recall) + "            " + ("%.4f" % event.f1Score))
-        
 
 ######################
 #### MAIN PROGRAM ####
@@ -187,32 +175,25 @@ eventsNames = [
 print("Initializing the events")
 eventsList = initEvents(eventsNames)
 
-referenceFileName = "train.csv"
-valuableFileName = "train.csv"  # "train_modified.csv"
+referenceFileName = "train_2.csv"
+evaluableFileName = "classified.csv"  # "train_modified.csv"
 resultsFileName = "results_JRE.csv"
 
-#Load the reference and valuable list
+#Load the reference and evaluable list
 print("Reading the reference 'image - event' table from the file '" + referenceFileName + "'")
 referenceList = getData(referenceFileName)
 
-print("Reading the valuable 'image - event' table from the file '" + valuableFileName + "'")
-valuableList = getData(valuableFileName)
+print("Reading the evaluable 'image - event' table from the file '" + evaluableFileName + "'")
+evaluableList = getData(evaluableFileName)
 
 
-#Set the k value
-k = "all"  #27755 # Set k to "all" if we want to analyse all the values
+# Set the k value
+k = "all"  # Set k to "all" if we want to analyse all the values
 
 
 print("\n")
 print("Starting to calculate...")
-calcPrecisionRecallF1Score(referenceList, valuableList, k)
-#calcRecall(referenceList, valuableList, k)
-
-##########
-## For Testing, this function returns if the image has the same event than the result image
-##########
-#checkIfIsWellClassified(referenceList, valuableList, k)
-##########
+evaluate(referenceList, evaluableList, k)
 
 
 print("\n")
@@ -221,8 +202,12 @@ writeResults(resultsFileName, eventsList)
 
 
 print("\n")
-print("RESULTS")
-print("\n")
 printResults()
 print("\n")
-#writeData("result.csv", imagesList)
+
+
+##########
+## For Testing, this function returns if the image has the same event than the result image
+##########
+checkIfIsWellClassified(referenceList, evaluableList, k)
+##########
