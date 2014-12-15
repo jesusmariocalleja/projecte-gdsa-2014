@@ -16,7 +16,7 @@ class imageTags(object):
         self.tags_list = tags_list
 
 
-### FROM AVALUADOR ###
+### CLASS even AND imageEvent ###
 class event(object):
     id = ""
     name = ""
@@ -36,7 +36,7 @@ class imageEvent(object):
         self.event_type = event_type
 ##########
 
-
+###Guarda ID amb tots els tags###
 def getTags(_fileName):
     with open(_fileName, 'rb') as f:
         itemList = []
@@ -68,7 +68,7 @@ def writeTags(_fName, _data):
         for tag in item.tags_list:
             tags += tag + "," 
         wr.writerow([item.document_id + '***' + tags])
-
+######
 
 ### FROM AVALUADOR ###
 def initEvents(_events):
@@ -91,7 +91,7 @@ def getData(_fileName):
     return itemList
 ##########
 
-
+###Crea llista event amb els tags corresponents####
 def createTF_IDF(_imageTagsList, _referenceList):
     for event in eventsList:
         tags = []
