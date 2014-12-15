@@ -16,7 +16,7 @@ class imageTags(object):
         self.tags_list = tags_list
 
 
-### CLASS even AND imageEvent ###
+### FROM AVALUADOR ###
 class event(object):
     id = ""
     name = ""
@@ -36,7 +36,7 @@ class imageEvent(object):
         self.event_type = event_type
 ##########
 
-###Guarda ID amb tots els tags###
+
 def getTags(_fileName):
     with open(_fileName, 'rb') as f:
         itemList = []
@@ -44,12 +44,12 @@ def getTags(_fileName):
         i = 0
 
         # 1a iteració
-        splitted = str(reader[0]).strip('[ \' ]').split(r'\t')
+        splitted = str(reader[0]).strip('[ \' ]').split(r'\t')  # \t for tabs
         itemList.append(imageTags(splitted[0], [splitted[1]]))
 
         # resta d'iteracions
         for row in reader:
-            splitted = str(row).strip('[ \' ]').split(r'\t')
+            splitted = str(row).strip('[ \' ]').split(r'\t')  # \t for tabs
             if splitted[0] == itemList[i].document_id:
                 itemList[i].tags_list.append(splitted[1])
             else:
@@ -66,9 +66,9 @@ def writeTags(_fName, _data):
     for item in _data:
         tags = ""
         for tag in item.tags_list:
-            tags += tag + "," 
+            tags += tag + ","
         wr.writerow([item.document_id + '***' + tags])
-######
+
 
 ### FROM AVALUADOR ###
 def initEvents(_events):
@@ -85,24 +85,24 @@ def getData(_fileName):
         itemList = []
         reader = csv.reader(f)
         for row in reader:
-            splitted = str(row).strip('[ \' ]').split(r'\t')
+            splitted = str(row).strip('[ \' ]').split(r' ')  # \t for tabs
             itemList.append(imageEvent(splitted[0], splitted[1]))
     del itemList[0]
     return itemList
 ##########
 
-###Crea llista event amb els tags corresponents####
-def createTF_IDF(_imageTagsList, _referenceList):
+
+def createTF_IDF(_imageTagsList, _referenceImageEventList):
     for event in eventsList:
         tags = []
-        for rImage in _referenceList:
+        for rImage in _referenceImageEventList:
             if rImage.event_type == event.name:
                 for imageTags in _imageTagsList:
                     if imageTags.document_id == rImage.document_id:
                         for tag in imageTags.tags_list:
                             tags.append(tag)
                         break
-        event.tags_list = set(tags)  #set(tags) -> Set elimina els duplicats en una llista
+        event.tags_list = set(tags)  # Set elimina els duplicats en una llista
 
 
 def writeTF_IDF():
@@ -119,7 +119,7 @@ def writeTF_IDF():
 #### MAIN PROGRAM ####
 ######################
 
-imageTagsList = getTags("sed2013_task2_dataset_train_tags.csv")
+imageTagsList = getTags("document_id_tag_2.csv")
 
 writeTags("id_tags.csv", imageTagsList)
 
@@ -140,9 +140,11 @@ eventsNames = [
 eventsList = initEvents(eventsNames)
 
 
-#Load the reference list
-referenceList = getData("train.csv")
+#Load the references lists
+referenceImageTagsList = getTags("document_id_tag_1.csv")
+referenceImageEventList = getData("train_1.csv")
 ##########
 
-createTF_IDF(imageTagsList, referenceList)
+
+createTF_IDF(referenceImageTagsList, referenceImageEventList)
 writeTF_IDF()
