@@ -102,7 +102,7 @@ def createTF_IDF(_imageTagsList, _referenceList):
 
 
 def writeTF_IDF():
-    oFile = open("TFIDF.txt", 'wb')
+    oFile = open("TF_IDF.CSV", 'wb')
     wr = csv.writer(oFile)
     for event in eventsList:
         tags = ""
