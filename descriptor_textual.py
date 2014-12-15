@@ -3,7 +3,7 @@
 import sys
 import csv
 
-# Aquesta linea incrementa el tamany maxim de line de csv
+# Aquesta linea incrementa el tamany maxim de linea de csv
 csv.field_size_limit(sys.maxsize)
 
 
