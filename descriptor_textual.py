@@ -12,7 +12,7 @@ class imageTags(object):
         self.tags_list = tags_list
 
 
-### XUS ###
+### FROM AVALUADOR ###
 class event(object):
     id = ""
     name = ""
@@ -66,7 +66,7 @@ def writeTags(_fName, _data):
         wr.writerow([item.document_id+' '+tags])
 
 
-### XUS ###
+### FROM AVALUADOR ###
 def initEvents(_events):
     eventsList = []
     i = 0
@@ -119,7 +119,7 @@ imageTagsList = getTags("sed2013_task2_dataset_train_tags.csv")
 
 writeTags("id_tags.csv", imageTagsList)
 
-### XUS ###
+### FROM AVALUADOR ###
 eventsNames = [
     "concert",
     "conference",
