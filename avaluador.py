@@ -8,7 +8,6 @@ class event(object):
     name = ""
     precision = 0.0
     recall = 0.0
-    accuracy = 0.0
     f1Score = 0.0
 
     def __init__(self, id, name):
@@ -56,11 +55,20 @@ def countImages(_imgList, _event):
 def evaluate(_rList, _vList, _k):
     if _k == "all":
         _k = len(_vList)
+
+    k_aux = 0
+    averagePrecision = 0.0
+    averageRecall = 0.0
+    averageF1Score = 0.0
+    eventCounter = 0
+
     for event in eventsList:
+
         print("Calculating for event '" + event.name + "'")
-        M = countImages(_rList, event.name)
+        M = countImages(_rList, event.name)  # Used to calculate Recall
         cont = 0
         matched = 0
+
         for vImage in _vList:
             if cont >= _k:
                 break
@@ -71,17 +79,57 @@ def evaluate(_rList, _vList, _k):
                         if rImage.event_type == vImage.event_type:
                             matched += 1
                         break
-        event.precision = ((float(matched) / float(_k)))
+        if _k > M:
+            k_aux = M
+        else:
+            k_aux = _k
+        event.precision = ((float(matched) / float(k_aux)))
         event.recall = ((float(matched) / float(M)))
         if (event.precision + event.recall) == 0:
             event.f1Score = 0
         else:
             event.f1Score = ((2.0 * ((event.precision * event.recall) / (event.precision + event.recall))))
 
+        averagePrecision += event.precision
+        averageRecall += event.recall
+        averageF1Score = event.f1Score
+        eventCounter += 1
 
-def writeResults(_fileName, _eventList):
+    averagePrecision /= eventCounter
+    averageRecall /= eventCounter
+    averageF1Score /= eventCounter
+
+    return [averagePrecision, averageRecall, averageF1Score]
+
+
+def calcAccuracy(_rList, _vList, _k):
+    hits = 0
+    cont = 0
+
+    if _k == "all":
+        _k = len(_vList)
+
+    for vImage in _vList:
+        if cont >= _k:
+            break
+        cont += 1
+        for rImage in _rList:
+            if rImage.document_id == vImage.document_id:
+                if rImage.event_type == vImage.event_type:
+                    hits += 1
+                break
+
+    return float(hits) / float(len(_vList))
+
+
+def writeResults(_fileName):
     oFile = open(_fileName, 'wb')
     wr = csv.writer(oFile)
+    wr.writerow(["Precission: " + ("%.4f" % results[0])])
+    wr.writerow(["Recall: " + ("%.4f" % results[1])])
+    wr.writerow(["F1 Score: " + ("%.4f" % results[2])])
+    wr.writerow(["Accuracy: " + ("%.4f" % results[3])])
+
     for event in eventsList:
         wr.writerow([
             str(event.id)
@@ -93,6 +141,13 @@ def writeResults(_fileName, _eventList):
 
 
 def printResults():
+    print("GLOBAL RESULTS")
+    print("Precission: " + ("%.4f" % results[0]))
+    print("Recall: " + ("%.4f" % results[1]))
+    print("F1 Score: " + ("%.4f" % results[2]))
+    print("Accuracy: " + ("%.4f" % results[3]))
+    print("\n")
+    print("RESULTS FOR EACH EVENT")
     print("EVENT ID     EVENT NAME        PRECISSION        RECALL            F1 SCORE")
     for event in eventsList:
         nameRestChars = 18 - len(event.name)
@@ -153,11 +208,17 @@ def writeData(_fileName, _data):
                 cont = countImages(_data, eventName)
         #'''
         wr.writerow([item.document_id+' '+item.event_type+' '+str(cont)])
+##########
 
 
 ######################
 #### MAIN PROGRAM ####
 ######################
+
+referenceFileName = "train_2.csv"  # Arxiu de la solució per comparar els resultats.
+evaluableFileName = "classified.csv"  # Arxiu a evaluar.
+resultsFileName = "results.csv"  # Arxiu on escriurem els resultats.
+
 
 eventsNames = [
     "concert",
@@ -175,9 +236,6 @@ eventsNames = [
 print("Initializing the events")
 eventsList = initEvents(eventsNames)
 
-referenceFileName = "train_2.csv"
-evaluableFileName = "classified.csv"  # "train_modified.csv"
-resultsFileName = "results_JRE.csv"
 
 #Load the reference and evaluable list
 print("Reading the reference 'image - event' table from the file '" + referenceFileName + "'")
@@ -193,12 +251,12 @@ k = "all"  # Set k to "all" if we want to analyse all the values
 
 print("\n")
 print("Starting to calculate...")
-evaluate(referenceList, evaluableList, k)
-
+results = evaluate(referenceList, evaluableList, k)
+results.append(calcAccuracy(referenceList, evaluableList, k))
 
 print("\n")
 print("Writing the obtained results in the file '" + resultsFileName + "'")
-writeResults(resultsFileName, eventsList)
+writeResults(resultsFileName)
 
 
 print("\n")
@@ -209,5 +267,5 @@ print("\n")
 ##########
 ## For Testing, this function returns if the image has the same event than the result image
 ##########
-checkIfIsWellClassified(referenceList, evaluableList, k)
+#checkIfIsWellClassified(referenceList, evaluableList, k)
 ##########
