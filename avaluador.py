@@ -92,7 +92,7 @@ def evaluate(_rList, _vList, _k):
 
         averagePrecision += event.precision
         averageRecall += event.recall
-        averageF1Score = event.f1Score
+        averageF1Score += event.f1Score
         eventCounter += 1
 
     averagePrecision /= eventCounter
@@ -100,6 +100,51 @@ def evaluate(_rList, _vList, _k):
     averageF1Score /= eventCounter
 
     return [averagePrecision, averageRecall, averageF1Score]
+
+
+def calcRelevantDocuments(_rList, _vList):
+    cont = 1
+    M = 0
+
+    for vImage in _vList:
+        for rImage in _rList:
+            if rImage.document_id == vImage.document_id:
+                if rImage.event_type == vImage.event_type:
+                    M = cont
+                break
+        cont += 1
+
+    return M
+
+
+def evaluate2(_rList, _vList, _k):
+    vListLength = len(_vList)
+    if (_k == "all" or _k > vListLength):
+        _k = vListLength
+
+    cont = 0
+    matched = 0
+
+    for vImage in _vList:
+        if cont >= _k:
+                break
+        cont += 1
+        for rImage in _rList:
+            if rImage.document_id == vImage.document_id:
+                if rImage.event_type == vImage.event_type:
+                    matched += 1
+                break
+
+    M = calcRelevantDocuments(_rList, _vList)
+
+    precision = ((float(matched) / float(_k)))
+    recall = ((float(matched) / float(M)))
+    if (precision + recall) == 0:
+        f1Score = 0.0
+    else:
+        f1Score = ((2.0 * ((precision * recall) / (precision + recall))))
+
+    return [precision, recall, f1Score]
 
 
 def calcAccuracy(_rList, _vList, _k):
@@ -129,7 +174,7 @@ def writeResults(_fileName):
     wr.writerow(["Recall: " + ("%.4f" % results[1])])
     wr.writerow(["F1 Score: " + ("%.4f" % results[2])])
     wr.writerow(["Accuracy: " + ("%.4f" % results[3])])
-
+    '''
     for event in eventsList:
         wr.writerow([
             str(event.id)
@@ -138,6 +183,7 @@ def writeResults(_fileName):
             + "  " + ("%.4f" % event.recall)
             + "  " + ("%.4f" % event.f1Score)
         ])
+    '''
 
 
 def printResults():
@@ -146,6 +192,8 @@ def printResults():
     print("Recall: " + ("%.4f" % results[1]))
     print("F1 Score: " + ("%.4f" % results[2]))
     print("Accuracy: " + ("%.4f" % results[3]))
+
+    '''
     print("\n")
     print("RESULTS FOR EACH EVENT")
     print("EVENT ID     EVENT NAME        PRECISSION        RECALL            F1 SCORE")
@@ -160,6 +208,7 @@ def printResults():
             + "            " + ("%.4f" % event.recall)
             + "            " + ("%.4f" % event.f1Score)
         )
+    '''
 
 
 ##########
@@ -215,9 +264,13 @@ def writeData(_fileName, _data):
 #### MAIN PROGRAM ####
 ######################
 
+# FILES VARS
 referenceFileName = "train_2.csv"  # Arxiu de la solució per comparar els resultats.
 evaluableFileName = "classified.csv"  # Arxiu a evaluar.
-resultsFileName = "results.csv"  # Arxiu on escriurem els resultats.
+resultsFileName = "results.txt"  # Arxiu on escriurem els resultats.
+
+# Setting the K value
+k = "all"  # Set k to "all" if we want to analyse all the values
 
 
 eventsNames = [
@@ -245,19 +298,15 @@ print("Reading the evaluable 'image - event' table from the file '" + evaluableF
 evaluableList = getData(evaluableFileName)
 
 
-# Set the k value
-k = "all"  # Set k to "all" if we want to analyse all the values
-
-
 print("\n")
 print("Starting to calculate...")
-results = evaluate(referenceList, evaluableList, k)
+#results = evaluate(referenceList, evaluableList, k)
+results = evaluate2(referenceList, evaluableList, k)
 results.append(calcAccuracy(referenceList, evaluableList, k))
 
 print("\n")
 print("Writing the obtained results in the file '" + resultsFileName + "'")
 writeResults(resultsFileName)
-
 
 print("\n")
 printResults()
