@@ -3,7 +3,7 @@
 import sys
 import csv
 
-# Aquesta linea incrementa el tamany de linea de csv
+# This lines increases the csv's line max size
 csv.field_size_limit(sys.maxsize)
 
 
@@ -106,8 +106,8 @@ def createTF_IDF(_imageTagsList, _referenceImageEventList):
         event.tags_list = set(tags)  # Set elimina els duplicats en una llista
 
 
-def writeTF_IDF():
-    oFile = open("TF_IDF.csv", 'wb')
+def writeTF_IDF(_fileName):
+    oFile = open(_fileName, 'wb')
     wr = csv.writer(oFile)
     for event in eventsList:
         tags = ""
@@ -121,9 +121,11 @@ def writeTF_IDF():
 ######################
 
 
+#FILES VARS
 evaluableImageTagsFileName = "document_id_tag_2.csv"
 referenceImageTagsFileName = "document_id_tag_1.csv"
 referenceImageEventFileName = "train_1.csv"
+eventTagsFileName = "TF_IDF.csv"
 
 
 print("Reading tags from the file '" + evaluableImageTagsFileName + "'")
@@ -159,4 +161,4 @@ referenceImageEventList = getData(referenceImageEventFileName)
 
 
 createTF_IDF(referenceImageTagsList, referenceImageEventList)
-writeTF_IDF()
+writeTF_IDF(eventTagsFileName)
