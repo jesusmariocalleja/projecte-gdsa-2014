@@ -53,17 +53,13 @@ def countImages(_imgList, _event):
 
 
 def evaluate(_rList, _vList, _k):
-    if _k == "all":
-        _k = len(_vList)
+    vListLength = len(_vList)
+    if (_k == "all" or _k > vListLength):
+        _k = vListLength
 
     k_aux = 0
-    averagePrecision = 0.0
-    averageRecall = 0.0
-    averageF1Score = 0.0
-    eventCounter = 0
 
     for event in eventsList:
-
         print("Calculating for event '" + event.name + "'")
         M = countImages(_rList, event.name)  # Used to calculate Recall
         cont = 0
@@ -89,17 +85,6 @@ def evaluate(_rList, _vList, _k):
             event.f1Score = 0
         else:
             event.f1Score = ((2.0 * ((event.precision * event.recall) / (event.precision + event.recall))))
-
-        averagePrecision += event.precision
-        averageRecall += event.recall
-        averageF1Score += event.f1Score
-        eventCounter += 1
-
-    averagePrecision /= eventCounter
-    averageRecall /= eventCounter
-    averageF1Score /= eventCounter
-
-    return [averagePrecision, averageRecall, averageF1Score]
 
 
 def calcRelevantDocuments(_rList, _vList):
@@ -209,6 +194,7 @@ def printResults():
             + "            " + ("%.4f" % event.f1Score)
         )
     '''
+    
 
 
 ##########
@@ -300,7 +286,7 @@ evaluableList = getData(evaluableFileName)
 
 print("\n")
 print("Starting to calculate...")
-#results = evaluate(referenceList, evaluableList, k)
+#evaluate(referenceList, evaluableList, k)
 results = evaluate2(referenceList, evaluableList, k)
 results.append(calcAccuracy(referenceList, evaluableList, k))
 
