@@ -2,6 +2,7 @@
 
 import sys
 import csv
+import pickle
 
 # This lines increases the csv's line max size
 csv.field_size_limit(sys.maxsize)
@@ -44,12 +45,12 @@ def getTags(_fileName):
         i = 0
 
         # 1a iteració
-        splitted = str(reader[0]).strip('[ \' ]').split(r'\t')  # \t for tabs
+        splitted = str(reader[0]).strip('[ \' ]').split(r' ')  # \t for tabs
         itemList.append(imageTags(splitted[0], [splitted[1]]))
 
         # resta d'iteracions
         for row in reader:
-            splitted = str(row).strip('[ \' ]').split(r'\t')  # \t for tabs
+            splitted = str(row).strip('[ \' ]').split(r' ')  # \t for tabs
             if splitted[0] == itemList[i].document_id:
                 itemList[i].tags_list.append(splitted[1])
             else:
@@ -57,7 +58,6 @@ def getTags(_fileName):
                 i += 1
                 #print("Reading tags from the image '" + splitted[0] + "'")
 
-    del itemList[0]  # esborrem la primera fila on trobem els títols
     return itemList
 
 
@@ -88,7 +88,6 @@ def getData(_fileName):
         for row in reader:
             splitted = str(row).strip('[ \' ]').split(r' ')  # \t for tabs
             itemList.append(imageEvent(splitted[0], splitted[1]))
-    del itemList[0]
     return itemList
 ##########
 
@@ -122,17 +121,17 @@ def writeTF_IDF(_fileName):
 
 
 #FILES VARS
-evaluableImageTagsFileName = "document_id_tag_2.csv"
-referenceImageTagsFileName = "document_id_tag_1.csv"
-referenceImageEventFileName = "train_1.csv"
-eventTagsFileName = "TF_IDF.csv"
-
+evaluableImageTagsFileName = "id_tag/document_id_tag_1.csv"  #"id_tag/evaluable_document_id_tag.csv"  # test
+referenceImageTagsFileName = "id_tag/document_id_tag_2.csv"  #"id_tag/document_id_tag_1.csv"  # train
+referenceImageEventFileName = "groundtruth/groundtruth_2.csv"  #"groundtruth/groundtruth_1.csv"  # ground truth
+evalIdTagsFileName = "eval_id_tags.csv"
+eventTagsFileName = "tf_idf.csv"
 
 print("Reading tags from the file '" + evaluableImageTagsFileName + "'")
 evaluableImageTagsList = getTags(evaluableImageTagsFileName)
 
 print("Writing 'image - tagslist' table in the file '" + evaluableImageTagsFileName + "'")
-writeTags("id_tags.csv", evaluableImageTagsList)
+writeTags(evalIdTagsFileName, evaluableImageTagsList)
 
 ### FROM AVALUADOR ###
 eventsNames = [
@@ -159,6 +158,20 @@ print("Reading the reference 'image - event' table from the file '" + referenceI
 referenceImageEventList = getData(referenceImageEventFileName)
 ##########
 
-
 createTF_IDF(referenceImageTagsList, referenceImageEventList)
 writeTF_IDF(eventTagsFileName)
+
+'''
+with open('filename.pickle', 'wb') as handle:
+    pickle.dump(eventsList, handle)
+
+with open('filename.pickle', 'rb') as handle:
+    b = pickle.load(handle)
+
+for event in b:
+    print("\n")
+    print event.name
+    print("******")
+    for tag in event.tags_list:
+        print tag,
+'''
