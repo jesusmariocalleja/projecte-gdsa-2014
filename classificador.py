@@ -50,14 +50,12 @@ def getImages(_fileName):
     return imagesList
 
 
-def classify():
+def classify(_fileName):
     cont = 1  # Aquestes variables (cont i length) són simplement pel text que es mostra a la consola.
     length = len(imagesList)
 
-    oFile = open("classified.csv", 'wb')
+    oFile = open(_fileName, 'wb')
     wr = csv.writer(oFile)
-
-    wr.writerow(["document_id event_type"])  # Escribim la primera línia
 
     for image in imagesList:  # Per cada imatge
         print ("Classifying image " + image.document_id + " (" + str(cont) + " of " + str(length) + ")")
@@ -90,8 +88,9 @@ def classify():
 ######################
 
 #FILES VARS
-eventTagsFileName = "TF_IDF.csv"
-evaluableImageTagsFileName = "id_tags.csv"
+eventTagsFileName = "tf_idf.csv"
+evaluableImageTagsFileName = "eval_id_tags.csv"
+classifiedFileName = "classified.txt"
 
 
 print("Getting events and related tags")
@@ -101,5 +100,5 @@ print("Getting images to classify")
 imagesList = getImages(evaluableImageTagsFileName)  # Llegim la llista amb les imatges i els tags que ens passa el descriptor.
 
 print("Starting to classify")
-classify()
+classify(classifiedFileName)
 
