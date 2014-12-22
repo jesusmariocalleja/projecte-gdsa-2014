@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import csv
+#import pickle
 
 
 class event(object):
@@ -9,6 +10,9 @@ class event(object):
     precision = 0.0
     recall = 0.0
     f1Score = 0.0
+    predictedPositives = 0
+    realPositives = 0
+    matched = 0
 
     def __init__(self, id, name):
         self.id = id
@@ -40,11 +44,10 @@ def getData(_fileName):
         for row in reader:
             splitted = str(row).strip('[ \' ]').split(r' ')  # \t for tabs
             itemList.append(image(splitted[0], splitted[1]))
-    del itemList[0]
     return itemList
 
 
-def countImages(_imgList, _event):
+def countTrueImagesByEvent(_imgList, _event):
     cont = 0
     for image in _imgList:
         if image.event_type == _event:
@@ -57,11 +60,15 @@ def evaluate(_rList, _vList, _k):
     if (_k == "all" or _k > vListLength):
         _k = vListLength
 
-    k_aux = 0
+    averagePrecision = 0.0
+    averageRecall = 0.0
+    averageF1Score = 0.0
+    eventsCount = len(eventsList)
 
     for event in eventsList:
         print("Calculating for event '" + event.name + "'")
-        M = countImages(_rList, event.name)  # Used to calculate Recall
+        predictedPositives = countTrueImagesByEvent(_vList, event.name)
+        realPositives = countTrueImagesByEvent(_rList, event.name)
         cont = 0
         matched = 0
 
@@ -75,61 +82,41 @@ def evaluate(_rList, _vList, _k):
                         if rImage.event_type == vImage.event_type:
                             matched += 1
                         break
-        if _k > M:
-            k_aux = M
+
+        event.predictedPositives = predictedPositives
+        event.realPositives = realPositives
+        event.matched = matched
+
+        #Precision
+        if predictedPositives == 0:
+            event.precission = 0
         else:
-            k_aux = _k
-        event.precision = ((float(matched) / float(k_aux)))
-        event.recall = ((float(matched) / float(M)))
+            event.precision = ((float(matched) / float(predictedPositives)))
+        averagePrecision += event.precision
+
+        #Recall
+        if realPositives == 0:
+            event.recall = 0
+        else:
+            event.recall = ((float(matched) / float(realPositives)))
+        averageRecall += event.recall
+
+        #F1 Score
         if (event.precision + event.recall) == 0:
             event.f1Score = 0
         else:
             event.f1Score = ((2.0 * ((event.precision * event.recall) / (event.precision + event.recall))))
+        averageF1Score += event.f1Score
 
+        # print("Predicted Positives: " + str(predictedPositives))
+        # print("Real Positives: " + str(realPositives))
+        # print("Matched: " + str(matched))
 
-def calcRelevantDocuments(_rList, _vList):
-    cont = 1
-    M = 0
+    averagePrecision /= eventsCount
+    averageRecall /= eventsCount
+    averageF1Score /= eventsCount
 
-    for vImage in _vList:
-        for rImage in _rList:
-            if rImage.document_id == vImage.document_id:
-                if rImage.event_type == vImage.event_type:
-                    M = cont
-                break
-        cont += 1
-
-    return M
-
-
-def evaluate2(_rList, _vList, _k):
-    vListLength = len(_vList)
-    if (_k == "all" or _k > vListLength):
-        _k = vListLength
-
-    cont = 0
-    matched = 0
-
-    for vImage in _vList:
-        if cont >= _k:
-                break
-        cont += 1
-        for rImage in _rList:
-            if rImage.document_id == vImage.document_id:
-                if rImage.event_type == vImage.event_type:
-                    matched += 1
-                break
-
-    M = calcRelevantDocuments(_rList, _vList)
-
-    precision = ((float(matched) / float(_k)))
-    recall = ((float(matched) / float(M)))
-    if (precision + recall) == 0:
-        f1Score = 0.0
-    else:
-        f1Score = ((2.0 * ((precision * recall) / (precision + recall))))
-
-    return [precision, recall, f1Score]
+    return [averagePrecision, averageRecall, averageF1Score]
 
 
 def calcAccuracy(_rList, _vList, _k):
@@ -152,59 +139,9 @@ def calcAccuracy(_rList, _vList, _k):
     return float(hits) / float(len(_vList))
 
 
-def writeResults(_fileName):
-    oFile = open(_fileName, 'wb')
-    wr = csv.writer(oFile)
-    wr.writerow(["Precission: " + ("%.4f" % results[0])])
-    wr.writerow(["Recall: " + ("%.4f" % results[1])])
-    wr.writerow(["F1 Score: " + ("%.4f" % results[2])])
-    wr.writerow(["Accuracy: " + ("%.4f" % results[3])])
-    '''
-    for event in eventsList:
-        wr.writerow([
-            str(event.id)
-            + "  " + event.name
-            + "  " + ("%.4f" % event.precision)
-            + "  " + ("%.4f" % event.recall)
-            + "  " + ("%.4f" % event.f1Score)
-        ])
-    '''
-
-
-def printResults():
-    print("GLOBAL RESULTS")
-    print("Precission: " + ("%.4f" % results[0]))
-    print("Recall: " + ("%.4f" % results[1]))
-    print("F1 Score: " + ("%.4f" % results[2]))
-    print("Accuracy: " + ("%.4f" % results[3]))
-
-    '''
-    print("\n")
-    print("RESULTS FOR EACH EVENT")
-    print("EVENT ID     EVENT NAME        PRECISSION        RECALL            F1 SCORE")
-    for event in eventsList:
-        nameRestChars = 18 - len(event.name)
-        space = ""
-        for i in range(0, nameRestChars):
-            space += " "
-        print(str(event.id)
-            + "            " + event.name
-            + space + ("%.4f" % event.precision)
-            + "            " + ("%.4f" % event.recall)
-            + "            " + ("%.4f" % event.f1Score)
-        )
-    '''
-    
-
-
-##########
-## For Testing, this function returns if the image has the same event than the result image.
-##########
-def checkIfIsWellClassified(_rList, _vList, _k):
-    result = False
+def calcMistakesAndMatches(_rList, _vList, _k):
     mistakes = 0
-    oFile = open("same_result.txt", 'wb')
-    wr = csv.writer(oFile)
+    matches = 0
     cont = 0
 
     if _k == "all":
@@ -216,34 +153,84 @@ def checkIfIsWellClassified(_rList, _vList, _k):
         cont += 1
         for rImage in _rList:
             if rImage.document_id == vImage.document_id:
-                if rImage.event_type == vImage.event_type:
-                    result = True
-                else:
-                    result = False
+                if rImage.event_type != vImage.event_type:
                     mistakes += 1
+                else:
+                    matches += 1
                 break
-        wr.writerow([vImage.document_id+' '+str(result)])
-    print("Número d'errades: " + str(mistakes))
-##########
+    return [mistakes, matches]
 
 
-##########
-## For Testing, this just writes the data we want to.
-##########
-def writeData(_fileName, _data):
+def writeResults(_fileName):
     oFile = open(_fileName, 'wb')
     wr = csv.writer(oFile)
-    for item in _data:
-        # Here we write what we want
-        eventName = item.event_type
-        cont = 0
-        #'''
-        for event in eventsList:
-            if event.name == eventName:
-                cont = countImages(_data, eventName)
-        #'''
-        wr.writerow([item.document_id+' '+item.event_type+' '+str(cont)])
-##########
+
+    wr.writerow(["Precission: " + ("%.4f" % results[0])])
+    wr.writerow(["Recall: " + ("%.4f" % results[1])])
+    wr.writerow(["F1 Score: " + ("%.4f" % results[2])])
+    wr.writerow(["Accuracy: " + ("%.4f" % results[3])])
+    wr.writerow(["Mistakes: " + (str(results[4]))])
+    wr.writerow(["Matches: " + (str(results[5]))])
+
+    for event in eventsList:
+        wr.writerow([
+            str(event.id)
+            + "  " + event.name
+            + "  " + ("%.4f" % event.precision)
+            + "  " + ("%.4f" % event.recall)
+            + "  " + ("%.4f" % event.f1Score)
+        ])
+
+
+def printResults():
+    print("GLOBAL RESULTS")
+    print("Precission: " + ("%.4f" % results[0]))
+    print("Recall: " + ("%.4f" % results[1]))
+    print("F1 Score: " + ("%.4f" % results[2]))
+    print("Accuracy: " + ("%.4f" % results[3]))
+    print("Mistakes: " + (str(results[4])))
+    print("Matches: " + (str(results[5])))
+
+    print("\n")
+    print("RESULTS FOR EACH EVENT")
+    print("EVENT ID     " 
+        + "EVENT NAME        "
+        + "PRECISION         "
+        + "RECALL            "
+        + "F1 SCORE          "
+        + "PRED. POS.        "
+        + "REAL POS.         "
+        + "MATCHED           "
+        + "MISTAKES")
+
+    for event in eventsList:
+        nameRestChars = 18 - len(event.name)
+        realPosRestChars = 18 - len(str(event.predictedPositives))
+        matchedRestChars = 18 - len(str(event.realPositives))
+        mistakesRestChars = 18 - len(str(event.matched))
+        nameSpace = ""
+        realPosSpace = ""
+        matchedSpace = ""
+        mistakesSpace = ""
+        for i in range(0, nameRestChars):
+            nameSpace += " "
+        for i in range(0, realPosRestChars):
+            realPosSpace += " "
+        for i in range(0, matchedRestChars):
+            matchedSpace += " "
+        for i in range(0, mistakesRestChars):
+            mistakesSpace += " "
+        print(str(event.id)
+            + "            " + event.name
+            + nameSpace + ("%.4f" % event.precision)
+            + "            " + ("%.4f" % event.recall)
+            + "            " + ("%.4f" % event.f1Score)
+            + "            " + (str(event.predictedPositives))
+            + realPosSpace + (str(event.realPositives))
+            + matchedSpace + (str(event.matched))
+            + mistakesSpace + (str(event.predictedPositives - event.matched))
+        )
+
 
 
 ######################
@@ -251,13 +238,12 @@ def writeData(_fileName, _data):
 ######################
 
 # FILES VARS
-referenceFileName = "train_2.csv"  # Arxiu de la solució per comparar els resultats.
-evaluableFileName = "classified.csv"  # Arxiu a evaluar.
+referenceFileName = "groundtruth/groundtruth_1.csv"  # "groundtruth/evaluable_groundtruth.csv" # Arxiu de la solució per comparar els resultats.
+evaluableFileName = "classified.txt"  # Arxiu a evaluar.
 resultsFileName = "results.txt"  # Arxiu on escriurem els resultats.
 
 # Setting the K value
 k = "all"  # Set k to "all" if we want to analyse all the values
-
 
 eventsNames = [
     "concert",
@@ -275,7 +261,6 @@ eventsNames = [
 print("Initializing the events")
 eventsList = initEvents(eventsNames)
 
-
 #Load the reference and evaluable list
 print("Reading the reference 'image - event' table from the file '" + referenceFileName + "'")
 referenceList = getData(referenceFileName)
@@ -283,12 +268,15 @@ referenceList = getData(referenceFileName)
 print("Reading the evaluable 'image - event' table from the file '" + evaluableFileName + "'")
 evaluableList = getData(evaluableFileName)
 
-
 print("\n")
 print("Starting to calculate...")
-#evaluate(referenceList, evaluableList, k)
-results = evaluate2(referenceList, evaluableList, k)
+results = evaluate(referenceList, evaluableList, k)
 results.append(calcAccuracy(referenceList, evaluableList, k))
+mistakes_matches = calcMistakesAndMatches(referenceList, evaluableList, k)
+mistakes = mistakes_matches[0]
+matches = mistakes_matches[1]
+results.append(mistakes)
+results.append(matches)
 
 print("\n")
 print("Writing the obtained results in the file '" + resultsFileName + "'")
@@ -297,10 +285,3 @@ writeResults(resultsFileName)
 print("\n")
 printResults()
 print("\n")
-
-
-##########
-## For Testing, this function returns if the image has the same event than the result image
-##########
-#checkIfIsWellClassified(referenceList, evaluableList, k)
-##########
