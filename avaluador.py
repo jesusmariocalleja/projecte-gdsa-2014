@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import csv
+import matplotlib.pyplot as plt; plt.rcdefaults()
+import numpy as np
+import matplotlib.pyplot as plt
 #import pickle
 
 
@@ -232,6 +235,40 @@ def printResults():
         )
 
 
+def printGraphs():
+    y_pos = np.arange(len(eventsNames))
+    precision = []
+    recall = []
+    mistakes = []
+    for event in eventsList:
+        precision.append(event.precision)
+        recall.append(event.recall)
+        mistakes.append(event.predictedPositives - event.matched)
+    
+    #Precision
+    plt.barh(y_pos, precision, align='center', color="#1abc9c")
+    plt.yticks(y_pos, eventsNames)
+    plt.xlabel('Precision')
+    plt.title('Precision for each class')
+    plt.show()
+
+    #Recall
+    plt.barh(y_pos, recall, align='center', color="#9b59b6")
+    plt.yticks(y_pos, eventsNames)
+    plt.xlabel('Recall')
+    plt.title('Recall for each class')
+    plt.show()
+
+    #Mistakes
+    plt.barh(y_pos, mistakes, align='center', color="#e74c3c")
+    plt.yticks(y_pos, eventsNames)
+    plt.xlabel('Mistakes')
+    plt.title('Mistakes for each class')
+    plt.show()
+
+
+
+
 
 ######################
 #### MAIN PROGRAM ####
@@ -284,4 +321,9 @@ writeResults(resultsFileName)
 
 print("\n")
 printResults()
+print("\n")
+
+print("Printing graphs...")
+print("\n")
+printGraphs()
 print("\n")
