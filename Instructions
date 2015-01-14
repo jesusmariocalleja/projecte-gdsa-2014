@@ -2,7 +2,8 @@ INSTRUCTIONS
 
 First of all you need two csv files with metadata. One with the images that you want to train, and the groundtruth file.
 
-1r --> Open read.py. It creates a csv file with the images that we want to classify.
+1r --> Copy the images that you want to classify into "images" folder. Open read.py. 
+It creates a csv file with the images.
 
 2n --> Open descriptor.py and we have to load the next files: 
 
@@ -22,9 +23,10 @@ INSTRUCCIONS
 
 Primer de tot necessites dos arxius csvs amb les metadades. Un amb les imatges que vols entrenar, i l'arxiu groundtruth.
 
-1r --> Obrim l'arxiu read.py que crea un csv de les imatges que volguem classificar.
+1r --> Copiar les imatges que es volen classificar a la carpeta "images". Obrir l'arxiu read.py 
+que crea un csv de les imatges.
 
-2n --> Obrim l'arxiu descriptor.py i li hem de passar els següents arxius: 
+2n --> Obrir l'arxiu descriptor.py i li hem de passar els següents arxius: 
 
 - groundtruth.csv
 - train.csv (llista imatges d'entrenament)
@@ -42,7 +44,8 @@ INSTRUCCIONES
 
 Antes que nada necesitas dos archivos csvs con los metadatos. Uno con las imágenes que quieres entrenar, y el archivo groundtruth.
 
-1º -> Abrir el archivo read.py que crea un csv de las imágenes que queramos clasificar.
+1º -> Copiar las imagenes que se quieren clasificar a la carpeta "images". Abrir el archivo read.py 
+que crea un csv de las imágenes.
 
 2º -> Abrir el archivo descriptor.py y le tenemos que pasar los siguientes archivos:
 
